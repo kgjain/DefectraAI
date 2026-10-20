@@ -86,3 +86,4 @@ cd ml-service && pytest          # 8 tests
 - Image evidence lives in a private local directory; only metadata is in PG.
 - Bootstrap is single-use and must be disabled in production
   (`APP_BOOTSTRAP_ENABLED=false`).
+# DefectraAI
