@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp"
+        android:layoutAnimation="@anim/layout_list">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            style="@style/Widget.QualityInspect.Card" android:layout_marginBottom="14dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="4dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingTop="10dp" android:paddingEnd="14dp">
+                    <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                        android:src="@drawable/ic_shield" android:tint="@color/primary"
+                        android:contentDescription="Record"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="RECORD" android:textSize="12sp"
+                        android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+                <TextView android:id="@+id/tv_detail" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="15sp"
+                    android:lineSpacingExtra="5dp" android:textColor="@color/on_surface"
+                    android:padding="14dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            style="@style/Widget.QualityInspect.Card" android:layout_marginBottom="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="4dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingStart="14dp" android:paddingTop="10dp" android:paddingEnd="14dp">
+                    <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                        android:src="@drawable/ic_actions" android:tint="@color/secondary"
+                        android:contentDescription="AI"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="AI ANALYSIS" android:textSize="12sp"
+                        android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+                <TextView android:id="@+id/tv_ai" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:textSize="13sp"
+                    android:fontFamily="monospace" android:textColor="#E2E8F0"
+                    android:background="@drawable/bg_console" android:padding="14dp"
+                    android:layout_margin="10dp" android:lineSpacingExtra="3dp"
+                    android:textIsSelectable="true"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_ai_full" style="@style/Widget.QualityInspect.Button.Outlined"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Open AI analysis detail" android:layout_marginBottom="12dp"
+            app:icon="@drawable/ic_ai" app:iconGravity="textStart"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_process" style="@style/Widget.QualityInspect.Button.Primary"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Run AI analysis" android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_review" style="@style/Widget.QualityInspect.Button.Tonal"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Record human review" android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_create_defect" style="@style/Widget.QualityInspect.Button.Primary"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Confirm defect (create record)" android:layout_marginBottom="16dp"
+            android:visibility="gone"/>
+    </LinearLayout>
+</ScrollView>

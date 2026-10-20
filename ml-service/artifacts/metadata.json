@@ -1,0 +1,19 @@
+{
+  "modelName": "defect-classifier",
+  "modelVersion": "0.1.0",
+  "classes": [
+    "OK",
+    "SCRATCH",
+    "DENT",
+    "DISCOLORATION",
+    "CRACK",
+    "MISALIGNMENT"
+  ],
+  "imageSize": 224,
+  "trainedAt": "2026-10-12T20:11:14.302088Z",
+  "datasetSize": 720,
+  "trainSize": 503,
+  "valSize": 108,
+  "testSize": 109,
+  "framework": "torch 2.14.0+cpu"
+}

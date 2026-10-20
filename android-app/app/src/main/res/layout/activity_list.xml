@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?android:attr/colorBackground">
+
+    <TextView android:id="@+id/tv_error" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textColor="@color/error"
+        android:textSize="13sp" android:padding="12dp" android:visibility="gone"
+        android:background="?attr/colorSurface"
+        android:drawableStart="@drawable/ic_defects" android:drawablePadding="8dp"
+        android:drawableTint="@color/error" android:gravity="center_vertical"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe" android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
+        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv" android:layout_width="match_parent"
+                android:layout_height="match_parent" android:clipToPadding="false"
+                android:padding="10dp" android:scrollbars="vertical"
+                android:layoutAnimation="@anim/layout_list"/>
+
+            <LinearLayout android:id="@+id/tv_empty" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="center"
+                android:orientation="vertical" android:gravity="center"
+                android:visibility="gone" android:padding="32dp">
+                <ImageView android:layout_width="72dp" android:layout_height="72dp"
+                    android:src="@drawable/ic_inbox" android:tint="@color/outline"
+                    android:contentDescription="Empty"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Nothing here yet" android:textSize="16sp"
+                    android:textStyle="bold" android:textColor="@color/on_surface_variant"
+                    android:layout_marginTop="14dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Records will appear here as they are created"
+                    android:textSize="13sp" android:textColor="@color/outline"
+                    android:gravity="center" android:layout_marginTop="4dp"/>
+            </LinearLayout>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_add" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_gravity="bottom|end"
+                android:layout_margin="16dp" android:src="@drawable/ic_add"
+                android:contentDescription="Create" android:visibility="gone"
+                app:tint="@color/on_primary" app:backgroundTint="?attr/colorPrimary"/>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

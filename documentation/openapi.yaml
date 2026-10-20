@@ -1,0 +1,953 @@
+openapi: 3.0.3
+info:
+  title: QualityInspect AI REST API
+  version: 1.0.0
+  description: |
+    Versioned API (`/api/v1`) for the Product Quality Inspection & Defect Tracking System.
+    All endpoints require `Authorization: Bearer <accessToken>` except the ones tagged `public`.
+    Authorization is enforced server-side per role: INSPECTOR, SUPERVISOR, QUALITY_MANAGER.
+servers:
+  - url: http://localhost:8080/api/v1
+tags:
+  - name: auth
+  - name: products
+  - name: batches
+  - name: inspections
+  - name: images
+  - name: ml
+  - name: review
+  - name: defects
+  - name: actions
+  - name: dashboard
+  - name: audit
+  - name: ai
+  - name: misc
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth, public]
+      summary: Exchange username/password for access + refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginRequest'}
+      responses:
+        '200': {description: Authenticated, body = AuthResponse}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/Validation'}
+  /auth/refresh:
+    post:
+      tags: [auth, public]
+      summary: Rotate a refresh token for a new token pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [refreshToken], properties: {refreshToken: {type: string}}}
+      responses:
+        '200': {description: New token pair = AuthResponse}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Revoke the presented refresh token
+      responses:
+        '204': {description: Revoked}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Current identity, roles and org
+      responses:
+        '200': {description: UserResponse}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /auth/bootstrap:
+    post:
+      tags: [auth, public]
+      summary: Dev-only creation of the first QUALITY_MANAGER (refused unless APP_BOOTSTRAP_ENABLED=true and no QM exists)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: {type: string}
+                password: {type: string}
+                displayName: {type: string}
+      responses:
+        '201': {description: Manager created}
+        '403': {description: Bootstrap disabled}
+        '409': {description: A quality manager already exists}
+
+  /products:
+    get:
+      tags: [products]
+      summary: Paged product list (search, category, status filters)
+      parameters:
+        - {name: search, in: query, schema: {type: string}}
+        - {name: category, in: query, schema: {type: string}}
+        - {name: status, in: query, schema: {type: string, enum: [ACTIVE, ARCHIVED]}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of ProductResponse}
+    post:
+      tags: [products]
+      summary: Create a product (QUALITY_MANAGER)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProductRequest'}
+      responses:
+        '201': {description: ProductResponse}
+        '400': {$ref: '#/components/responses/Validation'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {description: Duplicate product code}
+  /products/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [products]
+      summary: Product detail
+      responses:
+        '200': {description: ProductResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [products]
+      summary: Partial product update (QUALITY_MANAGER)
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProductRequest'}
+      responses:
+        '200': {description: ProductResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /products/{id}/archive:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [products]
+      summary: Archive a product (historical records remain readable)
+      responses:
+        '200': {description: ProductResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /batches:
+    get:
+      tags: [batches]
+      summary: Paged batch list (search, product, status, date filters)
+      parameters:
+        - {name: search, in: query, schema: {type: string}}
+        - {name: productId, in: query, schema: {type: integer, format: int64}}
+        - {name: status, in: query, schema: {type: string, enum: [ACTIVE, ARCHIVED]}}
+        - {name: from, in: query, schema: {type: string, format: date}}
+        - {name: to, in: query, schema: {type: string, format: date}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of BatchResponse}
+    post:
+      tags: [batches]
+      summary: Create a batch (QUALITY_MANAGER)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BatchRequest'}
+      responses:
+        '201': {description: BatchResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /batches/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [batches]
+      summary: Batch detail (includes product snapshot)
+      responses:
+        '200': {description: BatchResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [batches]
+      summary: Partial batch update (QUALITY_MANAGER)
+      responses:
+        '200': {description: BatchResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /batches/{id}/archive:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [batches]
+      summary: Archive a batch
+      responses:
+        '200': {description: BatchResponse}
+  /batches/{id}/quality:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [batches, dashboard]
+      summary: Batch quality decision screen data (counts with explicit denominators + decision history)
+      responses:
+        '200': {description: BatchQualityResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /batches/{id}/decisions:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [batches]
+      summary: Decision history (chronological)
+      responses:
+        '200': {description: List of BatchDecisionResponse}
+    post:
+      tags: [batches]
+      summary: Record HOLD / RELEASE / CONDITIONAL_RELEASE (QUALITY_MANAGER, reason required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BatchDecisionRequest'}
+      responses:
+        '201': {description: BatchDecisionResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /inspections:
+    get:
+      tags: [inspections]
+      summary: Paged inspections with workflow filters
+      parameters:
+        - {name: batchId, in: query, schema: {type: integer, format: int64}}
+        - {name: productId, in: query, schema: {type: integer, format: int64}}
+        - {name: status, in: query, schema: {type: string, enum: [DRAFT, SUBMITTED, CANCELLED]}}
+        - {name: inspectorId, in: query, schema: {type: integer, format: int64}}
+        - {name: reviewState, in: query, schema: {type: string, enum: [PENDING, REVIEWED]}}
+        - {name: aiState, in: query, schema: {type: string, enum: [PENDING, PROCESSING, COMPLETED, FAILED]}}
+        - {name: itemReference, in: query, schema: {type: string}}
+        - {name: from, in: query, schema: {type: string, format: date}}
+        - {name: to, in: query, schema: {type: string, format: date}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of InspectionSummaryResponse}
+    post:
+      tags: [inspections]
+      summary: Create inspection (draft or immediate submit) — idempotent via Idempotency-Key
+      parameters:
+        - {name: Idempotency-Key, in: header, schema: {type: string}, description: Client-generated key; duplicates replay the stored response}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/InspectionCreateRequest'}
+      responses:
+        '201': {description: InspectionResponse}
+        '409': {description: Duplicate initial inspection for this batch+item}
+        '400': {$ref: '#/components/responses/Validation'}
+  /inspections/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [inspections]
+      summary: Inspection detail with images, model results and reviews
+      responses:
+        '200': {description: InspectionDetailResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [inspections]
+      summary: Update a DRAFT inspection
+      responses:
+        '200': {description: InspectionResponse}
+        '409': {description: Only drafts are editable}
+    delete:
+      tags: [inspections]
+      summary: Delete a DRAFT inspection only (submitted evidence is never deleted)
+      responses:
+        '204': {description: Deleted}
+        '409': {description: Non-draft cannot be deleted}
+  /inspections/{id}/submit:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [inspections]
+      summary: Submit a draft (requires >= 1 image)
+      responses:
+        '200': {description: InspectionResponse}
+        '422': {description: No image attached}
+  /inspections/{id}/images:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [inspections, images]
+      summary: Upload evidence image (multipart) to a draft or submitted inspection
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary, description: jpeg/png/webp, <= 10 MB}
+      responses:
+        '201': {description: ImageResponse}
+        '413': {description: File too large}
+        '415': {description: Unsupported media type}
+  /images/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [images]
+      summary: Download image bytes (authorization via inspection chain)
+      responses:
+        '200': {description: Binary image}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /images/{id}/replace:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [images]
+      summary: Upload a corrected image; previous version retained (is_current=false)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {type: object, properties: {file: {type: string, format: binary}}}
+      responses:
+        '201': {description: New ImageResponse (version+1)}
+  /images/{id}/process:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [ml]
+      summary: Request ML analysis (202 + attempt id; async worker calls ml-service)
+      responses:
+        '202': {description: ProcessingAttemptResponse}
+        '409': {description: Already processing}
+        '503': {description: ML service unavailable (attempt recorded as FAILED, retry allowed)}
+  /images/{id}/results:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [ml]
+      summary: Model results for an image (current first, history retained)
+      responses:
+        '200': {description: List of ModelResultResponse}
+  /processing-attempts/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [ml]
+      summary: Attempt status (PENDING/PROCESSING/COMPLETED/FAILED + error details)
+      responses:
+        '200': {description: ProcessingAttemptResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /model-results/{id}/reviews:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [review]
+      summary: Human review of a model result (confirm / correct+reason / manual / evidence)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ReviewRequest'}
+      responses:
+        '201': {description: ReviewResponse}
+        '400': {description: Reason required for corrections}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /inspections/{id}/reviews:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [review]
+      summary: All human reviews for an inspection (history preserved)
+      responses:
+        '200': {description: List of ReviewResponse}
+  /review-queue:
+    get:
+      tags: [review, dashboard]
+      summary: Smart (rule-based, explainable) review prioritization queue
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, default: 20}}
+      responses:
+        '200': {description: List of ReviewQueueItemResponse with score + reasons}
+
+  /defects:
+    get:
+      tags: [defects]
+      summary: Paged defect list with filters
+      parameters:
+        - {name: batchId, in: query, schema: {type: integer, format: int64}}
+        - {name: productId, in: query, schema: {type: integer, format: int64}}
+        - {name: status, in: query, schema: {type: string, enum: [OPEN, CLOSED, REOPENED]}}
+        - {name: severity, in: query, schema: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}}
+        - {name: category, in: query, schema: {type: string}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of DefectResponse}
+    post:
+      tags: [defects]
+      summary: Confirm a defect from an inspection (INSPECTOR+)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DefectCreateRequest'}
+      responses:
+        '201': {description: DefectResponse}
+        '409': {description: Defect already exists for this inspection}
+  /defects/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [defects]
+      summary: Defect detail: evidence, actions, follow-ups, history
+      responses:
+        '200': {description: DefectDetailResponse}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [defects]
+      summary: Update severity/description or close/reopen (reason required; QUALITY_MANAGER for status changes)
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/DefectUpdateRequest'}
+      responses:
+        '200': {description: DefectResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+
+  /actions:
+    get:
+      tags: [actions]
+      summary: Paged corrective actions (owner, status, overdue filters)
+      parameters:
+        - {name: defectId, in: query, schema: {type: integer, format: int64}}
+        - {name: ownerId, in: query, schema: {type: integer, format: int64}}
+        - {name: status, in: query, schema: {type: string}}
+        - {name: overdue, in: query, schema: {type: boolean}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of ActionResponse}
+    post:
+      tags: [actions]
+      summary: Create + assign corrective action (QUALITY_MANAGER)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ActionCreateRequest'}
+      responses:
+        '201': {description: ActionResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /actions/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [actions]
+      summary: Action detail incl. linked defect and follow-up inspections
+      responses:
+        '200': {description: ActionDetailResponse}
+    patch:
+      tags: [actions]
+      summary: Status transition / notes / completion (backend validates transitions)
+      requestBody:
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ActionUpdateRequest'}
+      responses:
+        '200': {description: ActionResponse}
+        '409': {description: Illegal status transition}
+  /actions/{id}/reinspections:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    post:
+      tags: [actions, inspections]
+      summary: Start a linked FOLLOW_UP inspection (SUPERVISOR+)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FollowUpRequest'}
+      responses:
+        '201': {description: InspectionResponse (type=FOLLOW_UP)}
+
+  /dashboard/summary:
+    get:
+      tags: [dashboard]
+      summary: All summary metrics (DB-backed, distinct-item denominators)
+      responses:
+        '200': {description: DashboardSummaryResponse}
+  /dashboard/trends:
+    get:
+      tags: [dashboard]
+      summary: Daily submitted-inspection and confirmed-defect series
+      parameters:
+        - {name: days, in: query, schema: {type: integer, default: 30}}
+      responses:
+        '200': {description: TrendResponse}
+  /dashboard/recent:
+    get:
+      tags: [dashboard]
+      summary: Recent inspections, confirmed defects, actions needing attention
+      responses:
+        '200': {description: RecentActivityResponse}
+
+  /search:
+    get:
+      tags: [misc]
+      summary: Cross-resource search (products, batches, inspections, defects, actions)
+      parameters:
+        - {name: q, in: query, schema: {type: string}}
+        - {name: types, in: query, schema: {type: string}, description: "Comma list: PRODUCT,BATCH,INSPECTION,DEFECT,ACTION"}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Grouped search results}
+
+  /audit-events:
+    get:
+      tags: [audit]
+      summary: Audit timeline (QUALITY_MANAGER; append-only, not editable)
+      parameters:
+        - {name: entityType, in: query, schema: {type: string}}
+        - {name: entityId, in: query, schema: {type: string}}
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {$ref: '#/components/parameters/page'}
+        - {$ref: '#/components/parameters/size'}
+      responses:
+        '200': {description: Page of AuditEventResponse}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /audit-events/{id}:
+    parameters: [{name: id, in: path, required: true, schema: {type: integer, format: int64}}]
+    get:
+      tags: [audit]
+      responses:
+        '200': {description: AuditEventResponse}
+
+  /ai/reports/batch-summary:
+    post:
+      tags: [ai]
+      summary: Evidence-grounded batch summary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [batchId], properties: {batchId: {type: integer, format: int64}}}
+      responses:
+        '200': {description: AiReportResponse (facts vs suggestions separated)}
+        '404': {description: Unknown batch}
+        '503': {description: Generation failed; retry available}
+  /ai/reports/quality-report:
+    post:
+      tags: [ai]
+      summary: Period quality report grounded in authorized records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, properties: {from: {type: string, format: date}, to: {type: string, format: date}, batchId: {type: integer, format: int64}}}
+      responses:
+        '200': {description: AiReportResponse}
+  /ai/questions:
+    post:
+      tags: [ai]
+      summary: Ask a question about permitted records ("Summarize batch B-104", "What needs attention today?")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [question], properties: {question: {type: string}, batchId: {type: integer, format: int64}}}
+      responses:
+        '200': {description: AiReportResponse}
+        '404': {description: Unknown batch referenced in question}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /ai/reports:
+    get:
+      tags: [ai]
+      summary: Report history for the current user
+      responses:
+        '200': {description: List of AiReportResponse}
+
+  /health:
+    get:
+      tags: [misc, public]
+      summary: Backend health incl. database and storage checks
+      responses:
+        '200': {description: HealthResponse}
+
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    page: {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    size: {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+  responses:
+    Unauthorized: {description: Missing/invalid/expired token}
+    Forbidden: {description: Role not permitted for this operation}
+    NotFound: {description: Resource not found}
+    Validation: {description: Field-level validation errors}
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: {type: string}
+        password: {type: string}
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: {type: string}
+        refreshToken: {type: string}
+        expiresInSeconds: {type: integer}
+        user: {$ref: '#/components/schemas/UserResponse'}
+    UserResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        username: {type: string}
+        displayName: {type: string}
+        roles: {type: array, items: {type: string}}
+        enabled: {type: boolean}
+    ProductRequest:
+      type: object
+      required: [code, name, category]
+      properties:
+        code: {type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{1,39}$'}
+        name: {type: string, maxLength: 160}
+        category: {type: string, maxLength: 80}
+        description: {type: string, maxLength: 2000}
+        specifications: {type: object, additionalProperties: true}
+        status: {type: string, enum: [ACTIVE, ARCHIVED]}
+    ProductResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        code: {type: string}
+        name: {type: string}
+        category: {type: string}
+        description: {type: string, nullable: true}
+        specifications: {type: object, nullable: true}
+        status: {type: string}
+        createdBy: {type: string, nullable: true}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    BatchRequest:
+      type: object
+      required: [code, productId, productionDate, quantityProduced]
+      properties:
+        code: {type: string}
+        productId: {type: integer, format: int64}
+        productionDate: {type: string, format: date}
+        quantityProduced: {type: integer, minimum: 0}
+        productionLine: {type: string}
+        supplier: {type: string}
+        notes: {type: string}
+    BatchResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        code: {type: string}
+        productId: {type: integer, format: int64}
+        productName: {type: string}
+        productCode: {type: string}
+        productionDate: {type: string, format: date}
+        quantityProduced: {type: integer}
+        productionLine: {type: string, nullable: true}
+        supplier: {type: string, nullable: true}
+        status: {type: string}
+        currentDecision: {type: string, nullable: true}
+        createdAt: {type: string, format: date-time}
+    BatchDecisionRequest:
+      type: object
+      required: [decision, reason]
+      properties:
+        decision: {type: string, enum: [HOLD, RELEASE, CONDITIONAL_RELEASE]}
+        reason: {type: string, minLength: 5, maxLength: 2000}
+    BatchDecisionResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        batchId: {type: integer, format: int64}
+        decision: {type: string}
+        reason: {type: string}
+        decidedBy: {type: string}
+        decidedAt: {type: string, format: date-time}
+    BatchQualityResponse:
+      type: object
+      properties:
+        batchId: {type: integer, format: int64}
+        batchCode: {type: string}
+        quantityProduced: {type: integer}
+        distinctItemsInspected: {type: integer}
+        distinctItemsReviewed: {type: integer}
+        distinctItemsWithConfirmedDefects: {type: integer}
+        pendingInspections: {type: integer}
+        pendingReviews: {type: integer}
+        openCorrectiveActions: {type: integer}
+        confirmedDefectRate: {type: number, nullable: true, description: numerator/denominator label included}
+        rateDenominator: {type: integer}
+        currentDecision: {type: string, nullable: true}
+        decisionHistory: {type: array, items: {$ref: '#/components/schemas/BatchDecisionResponse'}}
+    InspectionCreateRequest:
+      type: object
+      required: [batchId, itemReference, evidenceScope]
+      properties:
+        batchId: {type: integer, format: int64}
+        itemReference: {type: string, maxLength: 120}
+        evidenceScope: {type: string, enum: [ITEM, SURFACE, BATCH_SAMPLE]}
+        observations: {type: string, maxLength: 4000}
+        submit: {type: boolean, default: false}
+        idempotencyKey: {type: string, maxLength: 128}
+    InspectionResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        batchId: {type: integer, format: int64}
+        batchCode: {type: string}
+        productId: {type: integer, format: int64}
+        productName: {type: string}
+        itemReference: {type: string}
+        evidenceScope: {type: string}
+        inspectionType: {type: string}
+        status: {type: string}
+        observations: {type: string, nullable: true}
+        inspector: {type: string, nullable: true}
+        correctiveActionId: {type: integer, format: int64, nullable: true}
+        aiState: {type: string, enum: [PENDING, PROCESSING, COMPLETED, FAILED]}
+        reviewState: {type: string, enum: [PENDING, REVIEWED]}
+        submittedAt: {type: string, format: date-time, nullable: true}
+        createdAt: {type: string, format: date-time}
+    InspectionDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/InspectionResponse'
+        - type: object
+          properties:
+            images: {type: array, items: {$ref: '#/components/schemas/ImageResponse'}}
+            modelResults: {type: array, items: {$ref: '#/components/schemas/ModelResultResponse'}}
+            reviews: {type: array, items: {$ref: '#/components/schemas/ReviewResponse'}}
+    ImageResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        inspectionId: {type: integer, format: int64}
+        originalFilename: {type: string}
+        contentType: {type: string}
+        sizeBytes: {type: integer, format: int64}
+        sha256: {type: string}
+        version: {type: integer}
+        current: {type: boolean}
+        url: {type: string, description: /api/v1/images/{id}
+        createdAt: {type: string, format: date-time}
+    ProcessingAttemptResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        imageId: {type: integer, format: int64}
+        attemptNo: {type: integer}
+        status: {type: string, enum: [PENDING, PROCESSING, COMPLETED, FAILED]}
+        errorDetails: {type: string, nullable: true}
+        durationMs: {type: integer, nullable: true}
+        modelName: {type: string, nullable: true}
+        modelVersion: {type: string, nullable: true}
+        startedAt: {type: string, format: date-time, nullable: true}
+        finishedAt: {type: string, format: date-time, nullable: true}
+    ModelResultResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        imageId: {type: integer, format: int64}
+        attemptId: {type: integer, format: int64, nullable: true}
+        predictedClass: {type: string, enum: [GOOD, POTENTIALLY_DEFECTIVE]}
+        score: {type: number, nullable: true, description: 'null when the model provides no calibrated score'}
+        scoreType: {type: string, nullable: true, example: softmax_probability}
+        modelName: {type: string}
+        modelVersion: {type: string}
+        processedAt: {type: string, format: date-time}
+        durationMs: {type: integer}
+        current: {type: boolean}
+    ReviewRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: {type: string, enum: [CONFIRM, CORRECT, MANUAL_REQUIRED, EVIDENCE_REQUESTED]}
+        confirmedOutcome: {type: string, enum: [GOOD, POTENTIALLY_DEFECTIVE, NEEDS_MANUAL], description: Required when decision=CORRECT}
+        reason: {type: string, description: Mandatory unless decision=CONFIRM}
+        evidenceRequestedNote: {type: string}
+    ReviewResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        inspectionId: {type: integer, format: int64}
+        modelResultId: {type: integer, format: int64, nullable: true}
+        reviewer: {type: string}
+        decision: {type: string}
+        confirmedOutcome: {type: string, nullable: true}
+        reason: {type: string, nullable: true}
+        createdAt: {type: string, format: date-time}
+    DefectCreateRequest:
+      type: object
+      required: [inspectionId, description, severity]
+      properties:
+        inspectionId: {type: integer, format: int64}
+        description: {type: string, minLength: 5, maxLength: 2000}
+        severity: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+        category: {type: string, description: Optional human-assigned category (never inferred by the binary model)}
+        imageIds: {type: array, items: {type: integer, format: int64}}
+        confirmationReason: {type: string}
+    DefectUpdateRequest:
+      type: object
+      properties:
+        description: {type: string}
+        severity: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+        category: {type: string, nullable: true}
+        status: {type: string, enum: [OPEN, CLOSED, REOPENED], description: QUALITY_MANAGER only; reason required}
+        reason: {type: string}
+    DefectResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        code: {type: string}
+        inspectionId: {type: integer, format: int64}
+        batchId: {type: integer, format: int64}
+        batchCode: {type: string}
+        productId: {type: integer, format: int64}
+        productName: {type: string}
+        itemKey: {type: string}
+        category: {type: string, nullable: true}
+        description: {type: string}
+        severity: {type: string}
+        status: {type: string}
+        reviewStatus: {type: string}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    DefectDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/DefectResponse'
+        - type: object
+          properties:
+            evidence: {type: array, items: {$ref: '#/components/schemas/ImageResponse'}}
+            actions: {type: array, items: {$ref: '#/components/schemas/ActionResponse'}}
+            history: {type: array, items: {$ref: '#/components/schemas/AuditEventResponse'}}
+    ActionCreateRequest:
+      type: object
+      required: [defectId, title, ownerId, targetDate]
+      properties:
+        defectId: {type: integer, format: int64}
+        title: {type: string, minLength: 3, maxLength: 200}
+        description: {type: string}
+        ownerId: {type: integer, format: int64}
+        targetDate: {type: string, format: date}
+    ActionUpdateRequest:
+      type: object
+      properties:
+        status: {type: string, enum: [OPEN, IN_PROGRESS, AWAITING_REINSPECTION, COMPLETED, CANCELLED]}
+        workNotes: {type: string}
+        completionDetails: {type: string}
+        reason: {type: string, description: Required for CANCELLED}
+        targetDate: {type: string, format: date}
+        ownerId: {type: integer, format: int64}
+    ActionResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        code: {type: string}
+        defectId: {type: integer, format: int64}
+        defectCode: {type: string}
+        title: {type: string}
+        ownerId: {type: integer, format: int64}
+        ownerName: {type: string}
+        targetDate: {type: string, format: date}
+        status: {type: string}
+        overdue: {type: boolean}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    ActionDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ActionResponse'
+        - type: object
+          properties:
+            description: {type: string, nullable: true}
+            workNotes: {type: string, nullable: true}
+            completionDetails: {type: string, nullable: true}
+            defect: {$ref: '#/components/schemas/DefectResponse'}
+            followUpInspections: {type: array, items: {$ref: '#/components/schemas/InspectionResponse'}}
+    FollowUpRequest:
+      type: object
+      required: [itemReference, observations]
+      properties:
+        itemReference: {type: string, maxLength: 120}
+        evidenceScope: {type: string, enum: [ITEM, SURFACE, BATCH_SAMPLE], default: ITEM}
+        observations: {type: string, maxLength: 4000}
+    DashboardSummaryResponse:
+      type: object
+      properties:
+        activeProducts: {type: integer}
+        activeBatches: {type: integer}
+        distinctItemsInspected: {type: integer}
+        distinctItemsReviewed: {type: integer}
+        pendingReviews: {type: integer}
+        distinctItemsWithConfirmedDefects: {type: integer}
+        confirmedDefectRate: {type: number, nullable: true}
+        rateNumerator: {type: integer}
+        rateDenominator: {type: integer}
+        openCorrectiveActions: {type: integer}
+        overdueCorrectiveActions: {type: integer}
+    TrendResponse:
+      type: object
+      properties:
+        days: {type: integer}
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              date: {type: string, format: date}
+              inspectionsSubmitted: {type: integer}
+              confirmedDefects: {type: integer}
+    RecentActivityResponse:
+      type: object
+      properties:
+        recentInspections: {type: array, items: {$ref: '#/components/schemas/InspectionResponse'}}
+        recentlyConfirmedDefects: {type: array, items: {$ref: '#/components/schemas/DefectResponse'}}
+        actionsNeedingAttention: {type: array, items: {$ref: '#/components/schemas/ActionResponse'}}
+    ReviewQueueItemResponse:
+      type: object
+      properties:
+        inspectionId: {type: integer, format: int64}
+        batchCode: {type: string}
+        productName: {type: string}
+        itemReference: {type: string}
+        priorityScore: {type: integer, description: Transparent rule-based score (not machine learning)}
+        reasons:
+          type: array
+          items:
+            type: object
+            properties:
+              factor: {type: string}
+              weight: {type: integer}
+              detail: {type: string}
+    AuditEventResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        entityType: {type: string}
+        entityId: {type: string}
+        action: {type: string}
+        actor: {type: string, nullable: true}
+        reason: {type: string, nullable: true}
+        details: {type: object, nullable: true}
+        occurredAt: {type: string, format: date-time}
+    AiReportResponse:
+      type: object
+      properties:
+        id: {type: integer, format: int64}
+        reportType: {type: string, enum: [BATCH_SUMMARY, QUALITY_REPORT, QUESTION]}
+        mode: {type: string, enum: [llm, dev-no-llm], description: dev-no-llm = deterministic evidence summary, NOT an LLM answer}
+        generated: {type: boolean}
+        responseText: {type: string}
+        facts: {type: array, items: {type: string}, description: Grounded statements with real record IDs}
+        suggestions: {type: array, items: {type: string}, description: Model suggestions - clearly not confirmed facts}
+        missingEvidence: {type: array, items: {type: string}}
+        sourceIds:
+          type: object
+          properties:
+            batchIds: {type: array, items: {type: integer}}
+            inspectionIds: {type: array, items: {type: integer}}
+            defectIds: {type: array, items: {type: integer}}
+            actionIds: {type: array, items: {type: integer}}
+        createdAt: {type: string, format: date-time}
+    HealthResponse:
+      type: object
+      properties:
+        status: {type: string, enum: [UP, DOWN]}
+        components: {type: object, additionalProperties: {type: string}}
+
+security:
+  - bearerAuth: []

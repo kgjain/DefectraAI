@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp"
+        android:layoutAnimation="@anim/layout_list">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="INSPECTION DETAILS" android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Batch" android:textSize="13sp"
+            android:textColor="@color/on_surface_variant" android:layout_marginBottom="6dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginBottom="14dp">
+            <Spinner android:id="@+id/sp_batch" android:layout_width="0dp"
+                android:layout_height="52dp" android:layout_weight="1"
+                android:background="@drawable/bg_field_outline"
+                android:paddingStart="16dp" android:paddingEnd="16dp"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_scan_batch"
+                style="@style/Widget.QualityInspect.Button.Outlined"
+                android:layout_width="wrap_content" android:layout_height="52dp"
+                android:layout_marginStart="8dp" android:text="Scan"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginBottom="2dp">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:hint="Item reference" style="@style/Widget.QualityInspect.Input">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_item_ref" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="text"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_scan_item"
+                style="@style/Widget.QualityInspect.Button.Outlined"
+                android:layout_width="wrap_content" android:layout_height="52dp"
+                android:layout_marginStart="8dp" android:layout_gravity="bottom"
+                android:layout_marginBottom="14dp" android:text="Scan"/>
+        </LinearLayout>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Inspection scope" android:textSize="13sp"
+            android:textColor="@color/on_surface_variant" android:layout_marginBottom="6dp"/>
+        <Spinner android:id="@+id/sp_scope" android:layout_width="match_parent"
+            android:layout_height="52dp" android:background="@drawable/bg_field_outline"
+            android:paddingStart="16dp" android:paddingEnd="16dp"
+            android:layout_marginBottom="14dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Observations" style="@style/Widget.QualityInspect.Input">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_observations" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:inputType="textMultiLine"
+                android:minLines="3" android:gravity="top"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="EVIDENCE" android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+            android:layout_marginBottom="8dp" android:layout_marginTop="4dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            style="@style/Widget.QualityInspect.Card" android:layout_marginBottom="14dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:padding="14dp">
+                <ImageView android:layout_width="34dp" android:layout_height="34dp"
+                    android:src="@drawable/ic_camera" android:tint="@color/primary"
+                    android:contentDescription="Evidence"/>
+                <TextView android:id="@+id/tv_image_status" android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="No evidence captured yet" android:textSize="14sp"
+                    android:textColor="@color/on_surface" android:layout_marginStart="12dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_capture" style="@style/Widget.QualityInspect.Button.Outlined"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Capture evidence" android:layout_marginBottom="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_submit" style="@style/Widget.QualityInspect.Button.Primary"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Create &amp; submit" android:layout_marginBottom="16dp"/>
+    </LinearLayout>
+</ScrollView>

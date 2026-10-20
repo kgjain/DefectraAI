@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground" android:layoutAnimation="@anim/layout_list">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.QualityInspect.Card">
+            <TextView android:id="@+id/tv_detail" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:padding="18dp" android:textSize="15sp"
+                android:lineSpacingExtra="5dp" android:textColor="@color/on_surface" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_product_ai"
+            style="@style/Widget.QualityInspect.Button.Outlined"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="AI analysis for this product"
+            app:icon="@drawable/ic_ai" app:iconGravity="textStart" />
+
+        <LinearLayout android:id="@+id/ll_product_buttons" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+</ScrollView>

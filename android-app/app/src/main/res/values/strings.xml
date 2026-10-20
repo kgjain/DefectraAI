@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">DEFECTRA AI</string>
+    <string-array name="evidence_scopes">
+        <item>ITEM</item>
+        <item>SURFACE</item>
+        <item>BATCH_SAMPLE</item>
+    </string-array>
+</resources>

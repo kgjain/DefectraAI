@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true" android:background="?android:attr/colorBackground">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp" android:layoutAnimation="@anim/layout_list">
+
+        <!-- Greeting header -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="16dp" android:baselineAligned="false"
+           >
+            <ImageView android:layout_width="52dp" android:layout_height="52dp"
+                android:src="@drawable/ic_logo" android:contentDescription="@string/app_name"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical"
+                android:layout_marginStart="12dp">
+                <TextView android:id="@+id/tv_greeting" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Welcome back"
+                    android:textAppearance="@style/TextAppearance.QualityInspect.Headline"
+                    android:textSize="20sp"/>
+                <TextView android:id="@+id/tv_subtitle" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Quality inspection console"
+                    android:textAppearance="@style/TextAppearance.QualityInspect.Body"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Stat tiles -->
+        <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:columnCount="2" android:layout_marginBottom="8dp"
+           >
+            <LinearLayout android:id="@+id/tile_products" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_columnWeight="1" android:layout_marginEnd="6dp"
+                android:layout_marginBottom="12dp" android:orientation="vertical"
+                android:background="@drawable/bg_stat_tile" android:padding="14dp"
+                android:foreground="?android:attr/selectableItemBackground">
+                <ImageView android:layout_width="26dp" android:layout_height="26dp"
+                    android:src="@drawable/ic_products" android:tint="@color/primary"
+                    android:contentDescription="Products"/>
+                <TextView android:id="@+id/tv_stat_products" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="—"
+                    android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_surface"
+                    android:layout_marginTop="6dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Active products" android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_batches" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_columnWeight="1" android:layout_marginStart="6dp"
+                android:layout_marginBottom="12dp" android:orientation="vertical"
+                android:background="@drawable/bg_stat_tile" android:padding="14dp"
+                android:foreground="?android:attr/selectableItemBackground">
+                <ImageView android:layout_width="26dp" android:layout_height="26dp"
+                    android:src="@drawable/ic_batches" android:tint="@color/secondary"
+                    android:contentDescription="Batches"/>
+                <TextView android:id="@+id/tv_stat_batches" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="—"
+                    android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_surface"
+                    android:layout_marginTop="6dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Active batches" android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_inspected" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_columnWeight="1" android:layout_marginEnd="6dp"
+                android:layout_marginBottom="12dp" android:orientation="vertical"
+                android:background="@drawable/bg_stat_tile" android:padding="14dp"
+                android:foreground="?android:attr/selectableItemBackground">
+                <ImageView android:layout_width="26dp" android:layout_height="26dp"
+                    android:src="@drawable/ic_camera" android:tint="@color/positive"
+                    android:contentDescription="Inspected"/>
+                <TextView android:id="@+id/tv_stat_inspected" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="—"
+                    android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_surface"
+                    android:layout_marginTop="6dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Items inspected" android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"/>
+            </LinearLayout>
+            <LinearLayout android:id="@+id/tile_pending" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_columnWeight="1" android:layout_marginStart="6dp"
+                android:layout_marginBottom="12dp" android:orientation="vertical"
+                android:background="@drawable/bg_stat_tile" android:padding="14dp"
+                android:foreground="?android:attr/selectableItemBackground">
+                <ImageView android:layout_width="26dp" android:layout_height="26dp"
+                    android:src="@drawable/ic_review" android:tint="@color/warning"
+                    android:contentDescription="Pending"/>
+                <TextView android:id="@+id/tv_stat_pending" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="—"
+                    android:textSize="26sp" android:textStyle="bold" android:textColor="@color/on_surface"
+                    android:layout_marginTop="6dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Pending reviews" android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"/>
+            </LinearLayout>
+        </GridLayout>
+
+        <ProgressBar android:id="@+id/pb_stats" android:layout_width="24dp" android:layout_height="24dp"
+            android:layout_gravity="center" android:indeterminateTint="@color/primary"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Extra stats / status line (kept for compatibility) -->
+        <TextView android:id="@+id/tv_stats" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textSize="13sp"
+            android:lineSpacingExtra="3dp" android:textColor="@color/on_surface_variant"
+            android:gravity="center" android:layout_marginBottom="8dp"/>
+
+        <!-- Drill-through chips (summary totals open the source lists) -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <TextView android:id="@+id/chip_defects" android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginEnd="6dp" android:gravity="center"
+                android:padding="10dp" android:background="@drawable/bg_stat_tile"
+                android:text="Defects ›" android:textSize="13sp" android:textStyle="bold"
+                android:textColor="@color/danger"
+                android:foreground="?android:attr/selectableItemBackground"/>
+            <TextView android:id="@+id/chip_actions" android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginStart="6dp" android:gravity="center"
+                android:padding="10dp" android:background="@drawable/bg_stat_tile"
+                android:text="CAPA actions ›" android:textSize="13sp" android:textStyle="bold"
+                android:textColor="@color/warning"
+                android:foreground="?android:attr/selectableItemBackground"/>
+        </LinearLayout>
+
+        <!-- 30-day trend chart (submitted vs confirmed defects) -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.QualityInspect.Card">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="30-DAY TREND" android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+                    android:layout_marginBottom="4dp"/>
+                <com.qualityinspect.android.widget.TrendChartView
+                    android:id="@+id/trend_chart" android:layout_width="match_parent"
+                    android:layout_height="190dp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Recent activity -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            style="@style/Widget.QualityInspect.Card">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="12dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="RECENT ACTIVITY" android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+                    android:layout_marginBottom="6dp"/>
+                <TextView android:id="@+id/tv_recent_empty" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="Nothing recent yet"
+                    android:textSize="13sp" android:textColor="@color/outline"
+                    android:padding="8dp" android:visibility="gone"/>
+                <LinearLayout android:id="@+id/ll_recent" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Primary action -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_new_inspection"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            app:cardCornerRadius="20dp" app:cardElevation="0dp"
+            app:cardBackgroundColor="?attr/colorPrimary"
+            android:foreground="?android:attr/selectableItemBackground"
+           >
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:padding="18dp">
+                <ImageView android:layout_width="44dp" android:layout_height="44dp"
+                    android:src="@drawable/ic_camera" android:tint="@color/on_primary"
+                    android:contentDescription="New inspection"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:layout_marginStart="14dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="New Inspection" android:textSize="17sp"
+                        android:textStyle="bold" android:textColor="@color/on_primary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Capture evidence &amp; run AI analysis"
+                        android:textSize="13sp" android:textColor="#E6EDFF"/>
+                </LinearLayout>
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right" android:tint="@color/on_primary"
+                    android:contentDescription="Open"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="QUICK ACTIONS" android:textAppearance="@style/TextAppearance.QualityInspect.Label"
+            android:textSize="12sp" android:layout_marginBottom="10dp"/>
+
+        <!-- Action grid: row 1 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:baselineAligned="false"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_review_queue"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_review" android:tint="@color/primary"
+                        android:contentDescription="Review queue"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Review Queue" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Approve or hold items" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_search"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginStart="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_search" android:tint="@color/secondary"
+                        android:contentDescription="Search"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Search" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Find items &amp; reports" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Action grid: row 2 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:baselineAligned="false"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_products"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_products" android:tint="@color/info"
+                        android:contentDescription="Products"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Products" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Product catalog" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_batches"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginStart="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_batches" android:tint="@color/positive"
+                        android:contentDescription="Batches"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Batches" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Batch records" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Action grid: row 3 -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:baselineAligned="false"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_defects"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_defects" android:tint="@color/danger"
+                        android:contentDescription="Defects"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Defects" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Defect records" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btn_actions"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginStart="6dp"
+                style="@style/Widget.QualityInspect.Card"
+               
+                android:foreground="?android:attr/selectableItemBackground">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="14dp">
+                    <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                        android:src="@drawable/ic_actions" android:tint="@color/warning"
+                        android:contentDescription="Corrective actions"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Corrective Actions" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface" android:layout_marginTop="8dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="CAPA tracking" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Action grid: row 4 (full width) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_audit"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            style="@style/Widget.QualityInspect.Card"
+           
+            android:foreground="?android:attr/selectableItemBackground">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:padding="14dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                    android:src="@drawable/ic_audit" android:tint="@color/on_surface_variant"
+                    android:contentDescription="Audit trail"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Audit Trail" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Immutable event history" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right" android:tint="@color/outline"
+                    android:contentDescription="Open"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Action grid: row 5 (full width, quality manager only) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btn_users"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" android:visibility="gone"
+            style="@style/Widget.QualityInspect.Card"
+            android:foreground="?android:attr/selectableItemBackground">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:padding="14dp">
+                <ImageView android:layout_width="32dp" android:layout_height="32dp"
+                    android:src="@drawable/ic_person" android:tint="@color/primary"
+                    android:contentDescription="Users"/>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:layout_marginStart="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Users" android:textStyle="bold" android:textSize="15sp"
+                        android:textColor="@color/on_surface"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Create, disable, assign roles" android:textSize="12sp"
+                        android:textColor="@color/on_surface_variant"/>
+                </LinearLayout>
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right" android:tint="@color/outline"
+                    android:contentDescription="Open"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+</ScrollView>
+
