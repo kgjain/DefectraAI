@@ -54,3 +54,8 @@ Thumbs.db
 
 # ---- Tools ----
 .tools/
+
+# ---- Root-level Gradle / local SDK ----
+local.properties
+.gradle/
+build/
